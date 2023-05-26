@@ -6,9 +6,11 @@ namespace California_ORM.Sql;
 public class Table: Attribute
 {
     public string Name { get; }
+    public string Schema { get; }
 
-    public Table(string name)
+    public Table(string name, string schema = "dbo")
     {
         Name = name;
+        Schema = schema;
     }
 }
