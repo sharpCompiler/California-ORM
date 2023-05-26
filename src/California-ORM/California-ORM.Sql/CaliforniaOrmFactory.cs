@@ -11,9 +11,9 @@ public static class CaliforniaExtension
 
     public static void Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
     {
-        var sql = "INSERT INTO {0} ([{1}]) VALUES ('{2}')";
+        var sql = "INSERT INTO [{0]][{1}] ([{2}]) VALUES ('{3}')";
         var name = GetEntityName(entity);
-        var properties = GetProperties(entity);
+        var properties = GetProperties(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
             
         var propertyNames = properties.Select(x => x.Key);
         var propertyValues = properties.Select(x => x.Value);
@@ -21,6 +21,25 @@ public static class CaliforniaExtension
         var propertyNameJoin = string.Join("], [", propertyNames);
         var propertyValueJoin = string.Join("', '", propertyValues);
             
+        var insertSql = string.Format(sql, name, name, propertyNameJoin, propertyValueJoin);
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = insertSql;
+        cmd.Transaction = transaction;
+        cmd.ExecuteScalar();
+    }
+
+    public static void Update<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
+    {
+        var sql = "INSERT INTO {0} ([{1}]) VALUES ('{2}')";
+        var name = GetEntityName(entity);
+        var properties = GetProperties(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
+
+        var propertyNames = properties.Select(x => x.Key);
+        var propertyValues = properties.Select(x => x.Value);
+
+        var propertyNameJoin = string.Join("], [", propertyNames);
+        var propertyValueJoin = string.Join("', '", propertyValues);
 
         var insertSql = string.Format(sql, name, propertyNameJoin, propertyValueJoin);
 
@@ -31,10 +50,10 @@ public static class CaliforniaExtension
     }
 
 
-    private static Dictionary<string, object> GetProperties<T>(T entity)
+    private static Dictionary<string, object> GetProperties<T>(T entity, Func<PropertyInfo, bool> expression)
     {
         var properties = new Dictionary<string, object>();
-        var propertyInfos = typeof(T).GetProperties().Where(x => !x.GetCustomAttributes<IgnoreMember>().Any());
+        var propertyInfos = typeof(T).GetProperties().Where(expression);
 
         foreach (var propertyInfo in propertyInfos)
         {
