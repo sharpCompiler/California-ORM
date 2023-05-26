@@ -13,8 +13,8 @@ public static class CaliforniaExtension
     public static void Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
-        var tableName = GetEntityName(entity);
-        var properties = GetProperties(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
+        var tableName = GetEntityName(typeof(T));
+        var properties = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
             
         var propertyNames = properties.Select(x => x.Key);
         var propertyValues = properties.Select(x => x.Value);
@@ -30,7 +30,51 @@ public static class CaliforniaExtension
         cmd.ExecuteScalar();
     }
 
-    private static Dictionary<string, object> GetProperties<T>(T entity, Func<PropertyInfo, bool> expression)
+    public static T? Get<T>(this IDbConnection connection, object entityId, IDbTransaction? transaction = null) where T : class
+    {
+        var sql = "SELECT [{0}] FROM [{1}].[{2}] WHERE {3} = '{4}'";
+        var tableName = GetEntityName(typeof(T));
+        var primaryKey = typeof(T).GetProperties().Single(x => x.GetCustomAttributes<PrimaryKey>().Any());
+
+        var fields = GetProperties<T>(x => !x.GetCustomAttributes<IgnoreMember>().Any());
+        var fieldsJoin = string.Join("], [", fields);
+
+        var getSql = string.Format(sql,fieldsJoin, tableName.Schema, tableName.TableName, primaryKey.Name, entityId);
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = getSql;
+        cmd.Transaction = transaction;
+        var reader = cmd.ExecuteReader();
+        if (reader.Read())
+        {
+            var instance = Activator.CreateInstance<T>();
+            foreach (var field in fields)
+            {
+                var value = reader[field];
+                typeof(T).GetProperties().First(x => x.Name == field).SetValue(instance, value);
+            }
+
+            return instance;
+        }
+
+        return null;
+    }
+
+    private static List<string> GetProperties<T>(Func<PropertyInfo, bool> expression)
+    {
+        var properties = new List<string>(20);
+        var propertyInfos = typeof(T).GetProperties().Where(expression);
+
+        foreach (var propertyInfo in propertyInfos)
+        {
+            var propertyName = GetPropertyName(propertyInfo);
+            properties.Add(propertyName);
+        }
+
+        return properties;
+    }
+
+    private static Dictionary<string, object> GetPropertiesWithValues<T>(T entity, Func<PropertyInfo, bool> expression)
     {
         var properties = new Dictionary<string, object>();
         var propertyInfos = typeof(T).GetProperties().Where(expression);
@@ -45,16 +89,16 @@ public static class CaliforniaExtension
         return properties;
     }
 
-    private static TableSchemaName GetEntityName(object entity)
+    private static TableSchemaName GetEntityName(Type entityType)
     {
-        var attributes = entity.GetType().GetCustomAttributes<Table>();
+        var attributes = entityType.GetCustomAttributes<Table>();
         if (attributes.Any())
         {
             var table = attributes.First();
             return new TableSchemaName(table.Name, table.Schema);
         }
         
-        return new TableSchemaName(entity.GetType().Name, "dbo");
+        return new TableSchemaName(entityType.Name, "dbo");
     }
 
     private static string GetPropertyName(MemberInfo propertyInfo)
