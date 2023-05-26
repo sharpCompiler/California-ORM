@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore /src/*.csproj
+      run: dotnet restore /src/California-ORM/California-ORM.Sql/California-ORM.Sql.csproj
     - name: Build
       run: dotnet build /src/**.csproj --no-restore
     - name: Test
