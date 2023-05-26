@@ -8,11 +8,12 @@ namespace California_ORM.Sql;
 
 public static class CaliforniaExtension
 {
+    private record TableSchemaName(string TableName, string Schema);
 
     public static void Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
     {
-        var sql = "INSERT INTO [{0]][{1}] ([{2}]) VALUES ('{3}')";
-        var name = GetEntityName(entity);
+        var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
+        var tableName = GetEntityName(entity);
         var properties = GetProperties(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
             
         var propertyNames = properties.Select(x => x.Key);
@@ -21,34 +22,13 @@ public static class CaliforniaExtension
         var propertyNameJoin = string.Join("], [", propertyNames);
         var propertyValueJoin = string.Join("', '", propertyValues);
             
-        var insertSql = string.Format(sql, name, name, propertyNameJoin, propertyValueJoin);
+        var insertSql = string.Format(sql, tableName.Schema, tableName.TableName, propertyNameJoin, propertyValueJoin);
 
         var cmd = connection.CreateCommand();
         cmd.CommandText = insertSql;
         cmd.Transaction = transaction;
         cmd.ExecuteScalar();
     }
-
-    public static void Update<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
-    {
-        var sql = "INSERT INTO {0} ([{1}]) VALUES ('{2}')";
-        var name = GetEntityName(entity);
-        var properties = GetProperties(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
-
-        var propertyNames = properties.Select(x => x.Key);
-        var propertyValues = properties.Select(x => x.Value);
-
-        var propertyNameJoin = string.Join("], [", propertyNames);
-        var propertyValueJoin = string.Join("', '", propertyValues);
-
-        var insertSql = string.Format(sql, name, propertyNameJoin, propertyValueJoin);
-
-        var cmd = connection.CreateCommand();
-        cmd.CommandText = insertSql;
-        cmd.Transaction = transaction;
-        cmd.ExecuteScalar();
-    }
-
 
     private static Dictionary<string, object> GetProperties<T>(T entity, Func<PropertyInfo, bool> expression)
     {
@@ -65,13 +45,16 @@ public static class CaliforniaExtension
         return properties;
     }
 
-    private static string GetEntityName(object entity)
+    private static TableSchemaName GetEntityName(object entity)
     {
         var attributes = entity.GetType().GetCustomAttributes<Table>();
         if (attributes.Any())
-            return attributes.First().Name;
+        {
+            var table = attributes.First();
+            return new TableSchemaName(table.Name, table.Schema);
+        }
         
-        return entity.GetType().Name;
+        return new TableSchemaName(entity.GetType().Name, "dbo");
     }
 
     private static string GetPropertyName(MemberInfo propertyInfo)
