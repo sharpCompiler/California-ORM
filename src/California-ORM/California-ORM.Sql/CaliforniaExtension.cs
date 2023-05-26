@@ -30,6 +30,21 @@ public static class CaliforniaExtension
         return cmd.ExecuteNonQuery();
     }
 
+    public static int Delete<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
+    {
+        var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
+        var tableName = GetEntityName(typeof(T));
+        var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
+        
+        var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = deleteSql;
+        cmd.Transaction = transaction;
+        return cmd.ExecuteNonQuery();
+    }
+
+
     public static int Update<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null)
     {
         var sql = @"UPDATE [{0}].[{1}]
@@ -60,7 +75,7 @@ public static class CaliforniaExtension
 
     public static T? Get<T>(this IDbConnection connection, object entityId, IDbTransaction? transaction = null) where T : class
     {
-        var sql = "SELECT [{0}] FROM [{1}].[{2}] WHERE {3} = '{4}'";
+        var sql = "SELECT [{0}] FROM [{1}].[{2}] WHERE [{3}] = '{4}'";
         var tableName = GetEntityName(typeof(T));
         var primaryKey = typeof(T).GetProperties().Single(x => x.GetCustomAttributes<PrimaryKey>().Any());
 
