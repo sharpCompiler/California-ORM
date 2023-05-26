@@ -10,7 +10,7 @@ public static class CaliforniaExtension
 {
     private record TableSchemaName(string TableName, string Schema);
 
-    public static void Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
+    public static int Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
         var tableName = GetEntityName(typeof(T));
@@ -27,7 +27,35 @@ public static class CaliforniaExtension
         var cmd = connection.CreateCommand();
         cmd.CommandText = insertSql;
         cmd.Transaction = transaction;
-        cmd.ExecuteScalar();
+        return cmd.ExecuteNonQuery();
+    }
+
+    public static int Update<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null)
+    {
+        var sql = @"UPDATE [{0}].[{1}]
+                   SET 
+                    {2}
+                     WHERE [{3}] = '{4}'";
+
+
+        var tableName = GetEntityName(typeof(T));
+        var fields = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any() && !x.GetCustomAttributes<PrimaryKey>().Any());
+        var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
+        var updateFields = new List<string>();
+        foreach (var f in fields)
+        {
+            var str= "[" + f.Key + "] = '" + f.Value + "'";
+            updateFields.Add(str);
+        }
+
+        var updateFiledAndValue = string.Join(", \n", updateFields);
+
+        var updateSql = string.Format(sql, tableName.Schema, tableName.TableName, updateFiledAndValue, primaryKeyFields.Key, primaryKeyFields.Value);
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = updateSql;
+        cmd.Transaction = transaction;
+        return cmd.ExecuteNonQuery();
     }
 
     public static T? Get<T>(this IDbConnection connection, object entityId, IDbTransaction? transaction = null) where T : class

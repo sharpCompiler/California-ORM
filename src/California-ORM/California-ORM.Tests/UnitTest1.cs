@@ -21,7 +21,7 @@ public class UnitTest1
         var con = new SqlConnection("Persist Security Info=False;Initial Catalog=DapperSampleDb;Data Source=.\\sqlexpress;Trusted_Connection=yes;");
         await con.OpenAsync();
 
-        var p = con.Get<Person>(Guid.Parse("67B12E6A-6720-47C2-A6B2-544860AA0ECB"));
+        var p = con.Update<Person>(person);
         
         Assert.IsTrue(con.State == ConnectionState.Open);
     }
