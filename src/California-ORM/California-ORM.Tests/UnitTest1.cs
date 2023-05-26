@@ -31,8 +31,10 @@ public class UnitTest1
 public class Person
 {
     public Guid Id { get; set; }
+    
     public string Name { get; set; }
     
+    [IgnoreMember]
     public DateTime CreatedAt { get; set; }
     public DateOnly Birthday { get; set; }
 }

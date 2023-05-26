@@ -34,7 +34,7 @@ public static class CaliforniaExtension
     private static Dictionary<string, object> GetProperties<T>(T entity)
     {
         var properties = new Dictionary<string, object>();
-        var propertyInfos = typeof(T).GetProperties();
+        var propertyInfos = typeof(T).GetProperties().Where(x => !x.GetCustomAttributes<IgnoreMember>().Any());
 
         foreach (var propertyInfo in propertyInfos)
         {
