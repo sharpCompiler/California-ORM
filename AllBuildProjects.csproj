@@ -2,9 +2,16 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>  
     <Nullable>enable</Nullable>
+	<PackageId>California-ORM</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Burim Hajrizaj</Authors>
+    <Company>ByteMaster Labs</Company>
+    <PackageDescription>ORM dedicated for SQL  Server</PackageDescription>
+    <RepositoryUrl>https://github.com/sharpCompiler/California-ORM</RepositoryUrl>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="*/*.csproj" />
   </ItemGroup>
 </Project>
+

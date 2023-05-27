@@ -52,7 +52,6 @@ public static class CaliforniaExtension
                     {2}
                      WHERE [{3}] = '{4}'";
 
-
         var tableName = GetEntityName(typeof(T));
         var fields = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any() && !x.GetCustomAttributes<PrimaryKey>().Any());
         var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
