@@ -25,6 +25,4 @@ jobs:
     - name: pack
       run:  dotnet pack AllBuildProjects.csproj
     - name: publish
-      env:
-        api_key: ${{ secrets.NUGET_API_KEY }}
       run:  dotnet nuget push "**/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
