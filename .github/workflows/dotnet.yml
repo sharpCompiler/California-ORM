@@ -25,4 +25,4 @@ jobs:
     - name: pack
       run:  dotnet pack AllBuildProjects.csproj
     - name: publish
-      run:  dotnet nuget push "*.nupkg"
+      run:  dotnet nuget push "*.nupkg" --api-key ${{NUGET_API_KEY}}
