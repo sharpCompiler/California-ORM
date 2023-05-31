@@ -2,7 +2,7 @@
 
 namespace California_ORM.Sql;
 
-[AttributeUsage(AttributeTargets.Property)]
-public class PrimaryKey: Attribute
-{
-}
+//[AttributeUsage(AttributeTargets.Property)]
+//public class PrimaryKey: Attribute
+//{
+//}

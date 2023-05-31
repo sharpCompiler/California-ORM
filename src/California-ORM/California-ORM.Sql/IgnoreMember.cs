@@ -2,7 +2,7 @@
 
 namespace California_ORM.Sql;
 
-[AttributeUsage(AttributeTargets.Property)]
-public class IgnoreMember : Attribute
-{
-}
+//[AttributeUsage(AttributeTargets.Property)]
+//public class IgnoreMember : Attribute
+//{
+//}
