@@ -1,5 +1,6 @@
 ﻿
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
+using System.Threading.Tasks;
 
 namespace California_ORM.Sql;
 
@@ -27,9 +28,11 @@ public static class CaliforniaExtension
     //    return cmd.ExecuteNonQuery();
     //}
 
-    public static int Delete<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
+
+    public static Task<int> DeleteAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     {
         var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
+
         //var tableName = GetEntityName(typeof(T));
         //var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
 
@@ -38,7 +41,7 @@ public static class CaliforniaExtension
         var cmd = connection.CreateCommand();
         //cmd.CommandText = deleteSql;
         cmd.Transaction = transaction;
-        return cmd.ExecuteNonQuery();
+        return cmd.ExecuteNonQueryAsync();
     }
 
 
