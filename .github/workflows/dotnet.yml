@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore pacgkages
-      run: dotnet restore AllBuildProjects.csproj      
+      run:  dotnet restore AllBuildProjects.csproj --verbosity detailed
     - name: Build
       run: dotnet build AllBuildProjects.csproj --configuration Release /p:CI=true
     - name: pack
