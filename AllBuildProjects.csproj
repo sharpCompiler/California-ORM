@@ -1,17 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>  
-    <Nullable>enable</Nullable>
-	<PackageId>California-ORM</PackageId>
-    <Version>1.0.5</Version>
+<Project Sdk="Microsoft.Build.Traversal/2.0.24">
+<PropertyGroup>
+    <PackageId>California-ORM</PackageId>
+    <Version>1.0.6</Version>
     <Authors>Burim Hajrizaj</Authors>
     <Company>ByteMaster Labs</Company>
     <PackageDescription>ORM dedicated for SQL  Server</PackageDescription>
     <RepositoryUrl>https://github.com/sharpCompiler/California-ORM</RepositoryUrl>
   </PropertyGroup>
   
+  
   <ItemGroup>
-    <ProjectReference Include="*/California-ORM.csproj" />
+    <ProjectReference Include="*/*.csproj" />
   </ItemGroup>
 </Project>
-

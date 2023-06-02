@@ -6,18 +6,18 @@ namespace California_ORM.Extensions;
 
 public static class CaliforniaExtension
 {
-    private class TableSchemaName
-    {
-        private string TableName { get; }
-        private string Schema { get; }
+    //private class TableSchemaName
+    //{
+    //    private string TableName { get; }
+    //    private string Schema { get; }
 
-        public TableSchemaName(string tableName, string schema)
-        {
-            TableName = tableName;
-            Schema = schema;
-        }
+    //    public TableSchemaName(string tableName, string schema)
+    //    {
+    //        TableName = tableName;
+    //        Schema = schema;
+    //    }
 
-    }
+    //}
 
     //public static int Insert<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     //{
