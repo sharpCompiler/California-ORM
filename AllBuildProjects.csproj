@@ -11,7 +11,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="*/California-ORM.Sql.csproj" />
+    <ProjectReference Include="*/California-ORM.csproj" />
   </ItemGroup>
 </Project>
 
