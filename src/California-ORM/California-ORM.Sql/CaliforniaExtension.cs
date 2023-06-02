@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 
@@ -10,7 +11,7 @@ public static class CaliforniaExtension
 {
     private record TableSchemaName(string TableName, string Schema);
 
-    public static int Insert<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
+    public static int Insert<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
         var tableName = GetEntityName(typeof(T));
@@ -30,7 +31,7 @@ public static class CaliforniaExtension
         return cmd.ExecuteNonQuery();
     }
 
-    public static int Delete<T>(this IDbConnection connection, T entity, IDbTransaction? transaction = null)
+    public static int Delete<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     {
         var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
         var tableName = GetEntityName(typeof(T));
@@ -45,7 +46,7 @@ public static class CaliforniaExtension
     }
 
 
-    public static int Update<T>(this IDbConnection connection, T entity, IDbTransaction transaction = null)
+    public static int Update<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
     {
         var sql = @"UPDATE [{0}].[{1}]
                    SET 
@@ -72,7 +73,7 @@ public static class CaliforniaExtension
         return cmd.ExecuteNonQuery();
     }
 
-    public static T? Get<T>(this IDbConnection connection, object entityId, IDbTransaction? transaction = null) where T : class
+    public static T? Get<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
     {
         var sql = "SELECT [{0}] FROM [{1}].[{2}] WHERE [{3}] = '{4}'";
         var tableName = GetEntityName(typeof(T));
