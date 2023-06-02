@@ -1,28 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿
 using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
 
 namespace California_ORM.Sql;
 
 public static class CaliforniaExtension
 {
-    //private record TableSchemaName(string TableName, string Schema);
+    private record TableSchemaName(string TableName, string Schema);
 
     //public static int Insert<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     //{
     //    var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
     //    var tableName = GetEntityName(typeof(T));
     //    var properties = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
-            
+
     //    var propertyNames = properties.Select(x => x.Key);
     //    var propertyValues = properties.Select(x => x.Value);
 
     //    var propertyNameJoin = string.Join("], [", propertyNames);
     //    var propertyValueJoin = string.Join("', '", propertyValues);
-            
+
     //    var insertSql = string.Format(sql, tableName.Schema, tableName.TableName, propertyNameJoin, propertyValueJoin);
 
     //    var cmd = connection.CreateCommand();
@@ -31,19 +27,19 @@ public static class CaliforniaExtension
     //    return cmd.ExecuteNonQuery();
     //}
 
-    //public static int Delete<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
-    //{
-    //    var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
-    //    var tableName = GetEntityName(typeof(T));
-    //    var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
-        
-    //    var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
+    public static int Delete<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
+    {
+        var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
+        //var tableName = GetEntityName(typeof(T));
+        //var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
 
-    //    var cmd = connection.CreateCommand();
-    //    cmd.CommandText = deleteSql;
-    //    cmd.Transaction = transaction;
-    //    return cmd.ExecuteNonQuery();
-    //}
+        //var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
+
+        var cmd = connection.CreateCommand();
+        //cmd.CommandText = deleteSql;
+        cmd.Transaction = transaction;
+        return cmd.ExecuteNonQuery();
+    }
 
 
     //public static int Update<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
@@ -140,7 +136,7 @@ public static class CaliforniaExtension
     //        var table = attributes.First();
     //        return new TableSchemaName(table.Name, table.Schema);
     //    }
-        
+
     //    return new TableSchemaName(entityType.Name, "dbo");
     //}
 
