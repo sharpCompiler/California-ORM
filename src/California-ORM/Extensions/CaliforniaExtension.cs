@@ -1,59 +1,54 @@
-﻿
+﻿using System.Linq;
 using System.Threading.Tasks;
+using California_ORM.Internal;
 using Microsoft.Data.SqlClient;
 
 namespace California_ORM.Extensions;
 
 public static class CaliforniaExtension
 {
-    //private class TableSchemaName
+
+    public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
+    {
+        var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ({3})";
+        var tableName = Entity.GetEntityName(typeof(T));
+        var properties = Entity.GetProperties<T>();
+
+        var allProperties = properties.OtherProperties.Select(x => x.Name).ToList();
+        if(properties.KeyProperty != null)
+            allProperties.Add(properties.KeyProperty.Name);
+
+        var propertyNameJoin = string.Join("], [", allProperties);
+        var propertyValueJoin = string.Join(", ", allProperties.Select(x => "@" + x));
+
+        var insertSql = string.Format(sql, tableName.Schema, tableName.TableName, propertyNameJoin, propertyValueJoin);
+
+        await using var cmd = new SqlCommand (insertSql,  connection, transaction);
+        foreach (var property in allProperties)
+        {
+            var value = typeof(T).GetProperty(property).GetValue(entity);
+
+            cmd.Parameters.AddWithValue(property, value);
+        }
+    
+        return await cmd.ExecuteNonQueryAsync();
+    }
+
+
+    //public static Task<int> DeleteAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     //{
-    //    private string TableName { get; }
-    //    private string Schema { get; }
+    //    var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
 
-    //    public TableSchemaName(string tableName, string schema)
-    //    {
-    //        TableName = tableName;
-    //        Schema = schema;
-    //    }
+    //    //var tableName = GetEntityName(typeof(T));
+    //    //var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
 
-    //}
-
-    //public static int Insert<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
-    //{
-    //    var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ('{3}')";
-    //    var tableName = GetEntityName(typeof(T));
-    //    var properties = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any());
-
-    //    var propertyNames = properties.Select(x => x.Key);
-    //    var propertyValues = properties.Select(x => x.Value);
-
-    //    var propertyNameJoin = string.Join("], [", propertyNames);
-    //    var propertyValueJoin = string.Join("', '", propertyValues);
-
-    //    var insertSql = string.Format(sql, tableName.Schema, tableName.TableName, propertyNameJoin, propertyValueJoin);
+    //    //var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
 
     //    var cmd = connection.CreateCommand();
-    //    cmd.CommandText = insertSql;
+    //    //cmd.CommandText = deleteSql;
     //    cmd.Transaction = transaction;
-    //    return cmd.ExecuteNonQuery();
+    //    return cmd.ExecuteNonQueryAsync();
     //}
-
-
-    public static Task<int> DeleteAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
-    {
-        var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
-
-        //var tableName = GetEntityName(typeof(T));
-        //var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
-
-        //var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
-
-        var cmd = connection.CreateCommand();
-        //cmd.CommandText = deleteSql;
-        cmd.Transaction = transaction;
-        return cmd.ExecuteNonQueryAsync();
-    }
 
 
     //public static int Update<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
@@ -92,7 +87,7 @@ public static class CaliforniaExtension
     //    var fields = GetProperties<T>(x => !x.GetCustomAttributes<IgnoreMember>().Any());
     //    var fieldsJoin = string.Join("], [", fields);
 
-    //    var getSql = string.Format(sql,fieldsJoin, tableName.Schema, tableName.TableName, primaryKey.Name, entityId);
+    //    var getSql = string.Format(sql, fieldsJoin, tableName.Schema, tableName.TableName, primaryKey.Name, entityId);
 
     //    var cmd = connection.CreateCommand();
     //    cmd.CommandText = getSql;
@@ -112,78 +107,8 @@ public static class CaliforniaExtension
 
     //    return null;
     //}
+    
 
-    //private static List<string> GetProperties<T>(Func<PropertyInfo, bool> expression)
-    //{
-    //    var properties = new List<string>(20);
-    //    var propertyInfos = typeof(T).GetProperties().Where(expression);
-
-    //    foreach (var propertyInfo in propertyInfos)
-    //    {
-    //        var propertyName = GetPropertyName(propertyInfo);
-    //        properties.Add(propertyName);
-    //    }
-
-    //    return properties;
-    //}
-
-    //private static Dictionary<string, object> GetPropertiesWithValues<T>(T entity, Func<PropertyInfo, bool> expression)
-    //{
-    //    var properties = new Dictionary<string, object>();
-    //    var propertyInfos = typeof(T).GetProperties().Where(expression);
-
-    //    foreach (var propertyInfo in propertyInfos)
-    //    {
-    //        var propertyName = GetPropertyName(propertyInfo);
-    //        var propertyValue = GetPropertyValue(propertyInfo, entity);
-    //        properties.Add(propertyName, propertyValue);
-    //    }
-
-    //    return properties;
-    //}
-
-    //private static TableSchemaName GetEntityName(Type entityType)
-    //{
-    //    var attributes = entityType.GetCustomAttributes<Table>();
-    //    if (attributes.Any())
-    //    {
-    //        var table = attributes.First();
-    //        return new TableSchemaName(table.Name, table.Schema);
-    //    }
-
-    //    return new TableSchemaName(entityType.Name, "dbo");
-    //}
-
-    //private static string GetPropertyName(MemberInfo propertyInfo)
-    //{
-    //    return propertyInfo.Name;
-    //}
-
-    //private static object? GetPropertyValue(PropertyInfo propertyInfo, object? entity)
-    //{
-    //    if (entity == null)
-    //        return null;
-
-    //    if (propertyInfo.PropertyType == typeof(DateTime))
-    //    {
-    //        var value = (DateTime)propertyInfo.GetValue(entity);
-    //        return value.ToString("yyyy-MM-dd HH:mm:ss.fff");
-    //    }
-
-    //    if (propertyInfo.PropertyType == typeof(DateOnly))
-    //    {
-    //        var value = (DateOnly)propertyInfo.GetValue(entity);
-    //        return value.ToString("yyyy-MM-dd");
-    //    }
-
-    //    if (propertyInfo.PropertyType == typeof(string))
-    //    {
-    //        var value = (string)propertyInfo.GetValue(entity);
-    //        return value.Replace("'", "''");
-    //    }
-
-
-    //    return propertyInfo.GetValue(entity);
-    //}
+   
 
 }
