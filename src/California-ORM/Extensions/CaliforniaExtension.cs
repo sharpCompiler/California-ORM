@@ -124,7 +124,7 @@ public static class CaliforniaExtension
         return await cmd.ExecuteNonQueryAsync();
     }
 
-    public static async IAsyncEnumerable<T> QueryAsync<T>(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters) where T : class
+    public static async Task<IEnumerable<T>> QueryAsync<T>(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters) where T : class
     {
         var entityProperties = Entity.GetProperties<T>();
 
@@ -132,7 +132,8 @@ public static class CaliforniaExtension
         cmd.CommandText = sql;
         cmd.Transaction = transaction;
         var reader = await cmd.ExecuteReaderAsync();
-
+        
+        var result = new List<T>(100);
         while (reader.Read())
         {
             var instance = Activator.CreateInstance<T>();
@@ -142,8 +143,10 @@ public static class CaliforniaExtension
                 typeof(T).GetProperties().First(x => x.Name == field.Name).SetValue(instance, value);
             }
 
-            yield return instance;
+            result.Add(instance);
         }
+
+        return result;
     }
 
     public static async Task<T?> GetAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
