@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
-
-namespace California_ORM.Internal;
+﻿namespace California_ORM.Internal;
 
 internal class TableSchemaName
 {
@@ -14,12 +11,4 @@ internal class TableSchemaName
         Schema = schema;
     }
 
-}
-
-
-internal class PropertyContainer
-{
-    internal PropertyInfo? KeyProperty { get; set; }
-    internal IEnumerable<PropertyInfo> OtherProperties { get; set; }
-    
 }

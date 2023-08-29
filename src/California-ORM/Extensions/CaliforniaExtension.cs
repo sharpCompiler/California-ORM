@@ -74,7 +74,7 @@ public static class CaliforniaExtension
     /// <param name="primaryKeyValue">Value of the primary key</param>
     /// <param name="transaction">SQL Transaction</param>
     /// <returns>Returns number effected in the table</returns>
-    public static Task<int> DeleteAsync<T>(this SqlConnection connection, object primaryKeyValue, SqlTransaction? transaction = null)
+    public static Task<int> DeleteAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null)
     {
         var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
 
@@ -85,7 +85,7 @@ public static class CaliforniaExtension
             throw new Exception("Primary key filed is missing. Use [PrimaryKey] to define the primary key on you class");
         }
 
-        var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyField.Name, primaryKeyValue);
+        var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyField.Name, entityId);
 
         var cmd = connection.CreateCommand();
         cmd.CommandText = deleteSql;
@@ -121,35 +121,39 @@ public static class CaliforniaExtension
     //    return cmd.ExecuteNonQuery();
     //}
 
-    //public static T? Get<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
-    //{
-    //    var sql = "SELECT [{0}] FROM [{1}].[{2}] WHERE [{3}] = '{4}'";
-    //    var tableName = GetEntityName(typeof(T));
-    //    var primaryKey = typeof(T).GetProperties().Single(x => x.GetCustomAttributes<PrimaryKey>().Any());
+    public static async Task<T?> GetAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
+    {
+        var sql = "SELECT  [{0}]  FROM [{1}].[{2}] WHERE [{3}] = @entityId";
+        var tableName = Entity.GetEntityName(typeof(T));
 
-    //    var fields = GetProperties<T>(x => !x.GetCustomAttributes<IgnoreMember>().Any());
-    //    var fieldsJoin = string.Join("], [", fields);
+        var entityProperties = Entity.GetProperties<T>();
 
-    //    var getSql = string.Format(sql, fieldsJoin, tableName.Schema, tableName.TableName, primaryKey.Name, entityId);
+        var primaryKey = entityProperties.KeyProperty;
 
-    //    var cmd = connection.CreateCommand();
-    //    cmd.CommandText = getSql;
-    //    cmd.Transaction = transaction;
-    //    var reader = cmd.ExecuteReader();
-    //    if (reader.Read())
-    //    {
-    //        var instance = Activator.CreateInstance<T>();
-    //        foreach (var field in fields)
-    //        {
-    //            var value = reader[field];
-    //            typeof(T).GetProperties().First(x => x.Name == field).SetValue(instance, value);
-    //        }
+        var allSelectFields = entityProperties.AllProperties;
+        var fieldsJoin = string.Join("], [", allSelectFields.Select(x => x.Name));
 
-    //        return instance;
-    //    }
+        var getSql = string.Format(sql, fieldsJoin, tableName.Schema, tableName.TableName, primaryKey.Name);
 
-    //    return null;
-    //}
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = getSql;
+        cmd.Transaction = transaction;
+        cmd.Parameters.AddWithValue("entityId", entityId);
+        var reader = await cmd.ExecuteReaderAsync();
+        if (reader.Read())
+        {
+            var instance = Activator.CreateInstance<T>();
+            foreach (var field in allSelectFields)
+            {
+                var value = reader[field.Name];
+                typeof(T).GetProperties().First(x => x.Name == field.Name).SetValue(instance, value);
+            }
+
+            return instance;
+        }
+
+        return null;
+    }
 
 
 

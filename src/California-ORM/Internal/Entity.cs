@@ -9,15 +9,17 @@ namespace California_ORM.Internal;
 
 static class Entity
 {
+    /// <summary>
+    /// Members of the model
+    /// </summary>
+    /// <returns>Returns all the properties except those marked with [IgnoreMember] attribute</returns>
     internal static PropertyContainer GetProperties<T>()
     {
         var allProperties = typeof(T).GetProperties().Where(x => !x.GetCustomAttributes<IgnoreMember>().Any());
+        var keyProperty = allProperties.FirstOrDefault(predicate: x => x.GetCustomAttributes<PrimaryKey>().Any());
+        var otherProperties = allProperties.Where(predicate: x => !x.GetCustomAttributes<PrimaryKey>().Any());
 
-        return new PropertyContainer()
-        {
-            KeyProperty = allProperties.FirstOrDefault(predicate: x => x.GetCustomAttributes<PrimaryKey>().Any()),
-            OtherProperties = allProperties.Where(predicate: x => !x.GetCustomAttributes<PrimaryKey>().Any())
-        };
+        return new PropertyContainer(keyProperty, otherProperties, allProperties);
     }
 
     internal static TableSchemaName GetEntityName(Type entityType)
