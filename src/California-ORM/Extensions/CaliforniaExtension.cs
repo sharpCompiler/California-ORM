@@ -1,14 +1,28 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using California_ORM.Internal;
 using Microsoft.Data.SqlClient;
 
 namespace California_ORM.Extensions;
 
+public class ExtraField
+{
+    public string FieldName { get; }
+    public object? Value { get; }
+
+    public ExtraField(string fieldName, object? value)
+    {
+        FieldName = fieldName;
+        Value = value;
+    }
+}
 public static class CaliforniaExtension
 {
 
-    public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
+    public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null, Dictionary<string, object?>? extraFields = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ({3})";
         var tableName = Entity.GetEntityName(typeof(T));
@@ -17,6 +31,10 @@ public static class CaliforniaExtension
         var allProperties = properties.OtherProperties.Select(x => x.Name).ToList();
         if(properties.KeyProperty != null)
             allProperties.Add(properties.KeyProperty.Name);
+        if (extraFields?.Count > 0)
+        {
+            allProperties.AddRange(extraFields.Select(x => x.Key));
+        }
 
         var propertyNameJoin = string.Join("], [", allProperties);
         var propertyValueJoin = string.Join(", ", allProperties.Select(x => "@" + x));
@@ -26,6 +44,13 @@ public static class CaliforniaExtension
         await using var cmd = new SqlCommand (insertSql,  connection, transaction);
         foreach (var property in allProperties)
         {
+            if (extraFields?.ContainsKey(property) ?? false)
+            {
+                var extraFieldValue = extraFields[property];
+                cmd.Parameters.AddWithValue(property, extraFieldValue ?? DBNull.Value);
+                continue;
+            }
+
             var value = typeof(T).GetProperty(property).GetValue(entity);
 
             cmd.Parameters.AddWithValue(property, value);

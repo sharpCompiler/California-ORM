@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "California-ORM", "src\California-ORM\California-ORM.csproj", "{F81FC723-237B-4778-846B-8BA02ED86458}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "California-ORM-Tests", "..\California-ORM-Tests\California-ORM-Tests\California-ORM-Tests.csproj", "{380E5825-AF08-49F4-BB4B-7C3E12B70763}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F81FC723-237B-4778-846B-8BA02ED86458}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F81FC723-237B-4778-846B-8BA02ED86458}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F81FC723-237B-4778-846B-8BA02ED86458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380E5825-AF08-49F4-BB4B-7C3E12B70763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380E5825-AF08-49F4-BB4B-7C3E12B70763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380E5825-AF08-49F4-BB4B-7C3E12B70763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380E5825-AF08-49F4-BB4B-7C3E12B70763}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
