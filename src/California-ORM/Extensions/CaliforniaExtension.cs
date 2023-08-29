@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using California_ORM.Attributes;
 using California_ORM.Internal;
 using Microsoft.Data.SqlClient;
 
@@ -124,6 +122,28 @@ public static class CaliforniaExtension
         cmd.Parameters.AddWithValue("entityId", pkValue);
 
         return await cmd.ExecuteNonQueryAsync();
+    }
+
+    public static async IAsyncEnumerable<T> QueryAsync<T>(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters) where T : class
+    {
+        var entityProperties = Entity.GetProperties<T>();
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Transaction = transaction;
+        var reader = await cmd.ExecuteReaderAsync();
+
+        while (reader.Read())
+        {
+            var instance = Activator.CreateInstance<T>();
+            foreach (var field in entityProperties.AllProperties)
+            {
+                var value = reader[field.Name];
+                typeof(T).GetProperties().First(x => x.Name == field.Name).SetValue(instance, value);
+            }
+
+            yield return instance;
+        }
     }
 
     public static async Task<T?> GetAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
