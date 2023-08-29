@@ -61,7 +61,6 @@ public static class CaliforniaExtension
             }
 
             var value = typeof(T).GetProperty(property).GetValue(entity);
-
             cmd.Parameters.AddWithValue(property, value);
         }
     
@@ -94,32 +93,39 @@ public static class CaliforniaExtension
     }
 
 
-    //public static int Update<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
-    //{
-    //    var sql = @"UPDATE [{0}].[{1}]
-    //               SET 
-    //                {2}
-    //                 WHERE [{3}] = '{4}'";
+    public static async Task<int> UpdateAsync<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
+    {
+        var sql = @"UPDATE [{0}].[{1}]
+                   SET 
+                    {2}
+                     WHERE [{3}] = @entityId";
 
-    //    var tableName = GetEntityName(typeof(T));
-    //    var fields = GetPropertiesWithValues(entity, x => !x.GetCustomAttributes<IgnoreMember>().Any() && !x.GetCustomAttributes<PrimaryKey>().Any());
-    //    var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
-    //    var updateFields = new List<string>();
-    //    foreach (var f in fields)
-    //    {
-    //        var str= "[" + f.Key + "] = '" + f.Value + "'";
-    //        updateFields.Add(str);
-    //    }
+        var tableName = Entity.GetEntityName(typeof(T));
+        var entityProperties = Entity.GetProperties<T>();
 
-    //    var updateFiledAndValue = string.Join(", \n", updateFields);
+        var fields = entityProperties.OtherProperties;
+        var primaryKeyFields = entityProperties.KeyProperty;
 
-    //    var updateSql = string.Format(sql, tableName.Schema, tableName.TableName, updateFiledAndValue, primaryKeyFields.Key, primaryKeyFields.Value);
+        var updateFiledAndValue = string.Join(", \n", fields.Select(x => x.Name + " = @" + x.Name));
 
-    //    var cmd = connection.CreateCommand();
-    //    cmd.CommandText = updateSql;
-    //    cmd.Transaction = transaction;
-    //    return cmd.ExecuteNonQuery();
-    //}
+        var updateSql = string.Format(sql, tableName.Schema, tableName.TableName, updateFiledAndValue, primaryKeyFields.Name);
+
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = updateSql;
+        cmd.Transaction = transaction;
+
+        foreach (var field in fields)
+        {
+            var value = field.GetValue(entity);
+            cmd.Parameters.AddWithValue(field.Name, value);
+        }
+
+        var pkValue = entityProperties.KeyProperty.GetValue(entity);
+
+        cmd.Parameters.AddWithValue("entityId", pkValue);
+
+        return await cmd.ExecuteNonQueryAsync();
+    }
 
     public static async Task<T?> GetAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
     {
@@ -154,8 +160,4 @@ public static class CaliforniaExtension
 
         return null;
     }
-
-
-
-
 }
