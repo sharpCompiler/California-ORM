@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using California_ORM.Attributes;
 using California_ORM.Internal;
 using Microsoft.Data.SqlClient;
-using Exception = System.Exception;
 
 namespace California_ORM.Extensions;
 
