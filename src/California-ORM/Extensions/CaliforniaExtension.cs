@@ -131,6 +131,9 @@ public static class CaliforniaExtension
         var cmd = connection.CreateCommand();
         cmd.CommandText = sql;
         cmd.Transaction = transaction;
+        foreach (var p in parameters)
+            cmd.Parameters.AddWithValue(p.FieldName, p.Value);
+       
         var reader = await cmd.ExecuteReaderAsync();
         
         var result = new List<T>(100);
