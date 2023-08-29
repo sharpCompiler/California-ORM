@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using California_ORM.Attributes;
 using California_ORM.Internal;
 using Microsoft.Data.SqlClient;
+using Exception = System.Exception;
 
 namespace California_ORM.Extensions;
 
@@ -21,7 +23,14 @@ public class ExtraField
 }
 public static class CaliforniaExtension
 {
-
+    /// <summary>
+    /// Returns effected rows in the table
+    /// </summary>
+    /// <param name="connection">Db connection is expected to be in Open State</param>
+    /// <param name="entity">Entity to be Added</param>
+    /// <param name="transaction">SQL Transaction</param>
+    /// <param name="extraFields">Extra files like Foreign Key, or something than is not a part of the model</param>
+    /// <returns></returns>
     public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null, Dictionary<string, object?>? extraFields = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ({3})";
@@ -59,21 +68,30 @@ public static class CaliforniaExtension
         return await cmd.ExecuteNonQueryAsync();
     }
 
+    /// <summary>
+    /// Deleting entity from the table
+    /// </summary>
+    /// <param name="primaryKeyValue">Value of the primary key</param>
+    /// <param name="transaction">SQL Transaction</param>
+    /// <returns>Returns number effected in the table</returns>
+    public static Task<int> DeleteAsync<T>(this SqlConnection connection, object primaryKeyValue, SqlTransaction? transaction = null)
+    {
+        var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
 
-    //public static Task<int> DeleteAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
-    //{
-    //    var sql = "DELETE FROM [{0}].[{1}] WHERE [{2}] = '{3}'";
+        var tableName = Entity.GetEntityName(typeof(T));
+        var primaryKeyField = Entity.GetProperties<T>().KeyProperty;
+        if (primaryKeyField == null)
+        {
+            throw new Exception("Primary key filed is missing. Use [PrimaryKey] to define the primary key on you class");
+        }
 
-    //    //var tableName = GetEntityName(typeof(T));
-    //    //var primaryKeyFields = GetPropertiesWithValues(entity, x => x.GetCustomAttributes<PrimaryKey>().Any()).Single();
+        var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyField.Name, primaryKeyValue);
 
-    //    //var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyFields.Key, primaryKeyFields.Value);
-
-    //    var cmd = connection.CreateCommand();
-    //    //cmd.CommandText = deleteSql;
-    //    cmd.Transaction = transaction;
-    //    return cmd.ExecuteNonQueryAsync();
-    //}
+        var cmd = connection.CreateCommand();
+        cmd.CommandText = deleteSql;
+        cmd.Transaction = transaction;
+        return cmd.ExecuteNonQueryAsync();
+    }
 
 
     //public static int Update<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
@@ -132,8 +150,8 @@ public static class CaliforniaExtension
 
     //    return null;
     //}
-    
 
-   
+
+
 
 }
