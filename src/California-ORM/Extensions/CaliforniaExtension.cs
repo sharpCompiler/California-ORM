@@ -7,17 +7,6 @@ using Microsoft.Data.SqlClient;
 
 namespace California_ORM.Extensions;
 
-public class ExtraField
-{
-    public string FieldName { get; }
-    public object? Value { get; }
-
-    public ExtraField(string fieldName, object? value)
-    {
-        FieldName = fieldName;
-        Value = value;
-    }
-}
 public static class CaliforniaExtension
 {
     /// <summary>
@@ -28,7 +17,7 @@ public static class CaliforniaExtension
     /// <param name="transaction">SQL Transaction</param>
     /// <param name="extraFields">Extra files like Foreign Key, or something than is not a part of the model</param>
     /// <returns></returns>
-    public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null, Dictionary<string, object?>? extraFields = null)
+    public static async Task<int> InsertAsync<T>(this SqlConnection connection, T entity, Dictionary<string, object?>? extraFields = null, SqlTransaction? transaction = null)
     {
         var sql = "INSERT INTO [{0}].[{1}] ([{2}]) VALUES ({3})";
         var tableName = Entity.GetEntityName(typeof(T));
@@ -67,7 +56,6 @@ public static class CaliforniaExtension
     /// <summary>
     /// Deleting entity from the table
     /// </summary>
-    /// <param name="primaryKeyValue">Value of the primary key</param>
     /// <param name="transaction">SQL Transaction</param>
     /// <returns>Returns number effected in the table</returns>
     public static Task<int> DeleteAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null)
@@ -90,7 +78,7 @@ public static class CaliforniaExtension
     }
 
 
-    public static async Task<int> UpdateAsync<T>(this SqlConnection connection, T entity, SqlTransaction transaction = null)
+    public static async Task<int> UpdateAsync<T>(this SqlConnection connection, T entity, SqlTransaction? transaction = null)
     {
         var sql = @"UPDATE [{0}].[{1}]
                    SET 
@@ -124,7 +112,7 @@ public static class CaliforniaExtension
         return await cmd.ExecuteNonQueryAsync();
     }
 
-    public static async Task<IEnumerable<T>> QueryAsync<T>(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters) where T : class
+    public static async Task<IEnumerable<T>> QueryAsync<T>(this SqlConnection connection, string sql, Dictionary<string, object?>? parameters = null, SqlTransaction? transaction = null) where T : class
     {
         var entityProperties = Entity.GetProperties<T>();
 
@@ -132,7 +120,7 @@ public static class CaliforniaExtension
         cmd.CommandText = sql;
         cmd.Transaction = transaction;
         foreach (var p in parameters)
-            cmd.Parameters.AddWithValue(p.FieldName, p.Value);
+            cmd.Parameters.AddWithValue(p.Key, p.Value);
        
         await using var reader = await cmd.ExecuteReaderAsync();
         
@@ -152,13 +140,13 @@ public static class CaliforniaExtension
         return result;
     }
 
-    public static async Task<int> ExecuteNonQueryAsync(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters)
+    public static async Task<int> NonQueryAsync(this SqlConnection connection, string sql, Dictionary<string, object?>? parameters = null, SqlTransaction? transaction = null)
     {
         await using var cmd = connection.CreateCommand();
         cmd.CommandText = sql;
         cmd.Transaction = transaction;
         foreach (var p in parameters)
-            cmd.Parameters.AddWithValue(p.FieldName, p.Value);
+            cmd.Parameters.AddWithValue(p.Key, p.Value);
        
         return await cmd.ExecuteNonQueryAsync();
     }
