@@ -83,7 +83,7 @@ public static class CaliforniaExtension
 
         var deleteSql = string.Format(sql, tableName.Schema, tableName.TableName, primaryKeyField.Name, entityId);
 
-        var cmd = connection.CreateCommand();
+        using var cmd = connection.CreateCommand();
         cmd.CommandText = deleteSql;
         cmd.Transaction = transaction;
         return cmd.ExecuteNonQueryAsync();
@@ -107,7 +107,7 @@ public static class CaliforniaExtension
 
         var updateSql = string.Format(sql, tableName.Schema, tableName.TableName, updateFiledAndValue, primaryKeyFields.Name);
 
-        var cmd = connection.CreateCommand();
+        await using var cmd = connection.CreateCommand();
         cmd.CommandText = updateSql;
         cmd.Transaction = transaction;
 
@@ -134,7 +134,7 @@ public static class CaliforniaExtension
         foreach (var p in parameters)
             cmd.Parameters.AddWithValue(p.FieldName, p.Value);
        
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         
         var result = new List<T>(100);
         while (reader.Read())
@@ -170,7 +170,7 @@ public static class CaliforniaExtension
         cmd.CommandText = getSql;
         cmd.Transaction = transaction;
         cmd.Parameters.AddWithValue("entityId", entityId);
-        var reader = await cmd.ExecuteReaderAsync();
+        await using var reader = await cmd.ExecuteReaderAsync();
         if (reader.Read())
         {
             var instance = Activator.CreateInstance<T>();
