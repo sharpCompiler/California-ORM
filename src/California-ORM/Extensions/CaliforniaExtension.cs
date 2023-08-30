@@ -152,6 +152,17 @@ public static class CaliforniaExtension
         return result;
     }
 
+    public static async Task<int> ExecuteNonQueryAsync(this SqlConnection connection, string sql, SqlTransaction? transaction = null, params ExtraField[] parameters)
+    {
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        cmd.Transaction = transaction;
+        foreach (var p in parameters)
+            cmd.Parameters.AddWithValue(p.FieldName, p.Value);
+       
+        return await cmd.ExecuteNonQueryAsync();
+    }
+
     public static async Task<T?> GetAsync<T>(this SqlConnection connection, object entityId, SqlTransaction? transaction = null) where T : class
     {
         var sql = "SELECT  [{0}]  FROM [{1}].[{2}] WHERE [{3}] = @entityId";
