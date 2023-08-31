@@ -1,5 +1,5 @@
 # California-ORM
-  A very tiny .NET Object-Relational Mapping (ORM) NuGet package with focus only on SQL Server and ADO.Net. California-ORM is built at E 
+  A very tiny .NET Object-Relational Mapping (ORM) NuGet package that works exclusively with SQL Server and ADO.NET. It extends the functionality of ADO.NET by providing a simple and elegant way to map query results to C# objects.
   
   
 ## Version
