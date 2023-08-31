@@ -119,7 +119,7 @@ public static class CaliforniaExtension
         var cmd = connection.CreateCommand();
         cmd.CommandText = sql;
         cmd.Transaction = transaction;
-        foreach (var p in parameters)
+        foreach (var p in parameters ?? new Dictionary<string, object?>())
             cmd.Parameters.AddWithValue(p.Key, p.Value);
        
         await using var reader = await cmd.ExecuteReaderAsync();
