@@ -10,7 +10,7 @@
     <Version>1.0.15</Version>
     <Authors>Burim Hajrizaj</Authors>
     <Company>ByteMaster Labs</Company>
-    <PackageDescription>ORM dedicated for SQL  Server</PackageDescription>
+    <PackageDescription>ORM dedicated for SQL Server</PackageDescription>
     <RepositoryUrl>https://github.com/sharpCompiler/California-ORM</RepositoryUrl>
 	
   </PropertyGroup>
